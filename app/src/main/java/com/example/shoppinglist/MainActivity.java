@@ -1,7 +1,6 @@
 package com.example.shoppinglist;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -13,18 +12,15 @@ import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.shoppinglist.DB.FeedReaderContract;
 import com.example.shoppinglist.dummy.DummyContent;
-
-import java.util.ArrayList;
 
 public class MainActivity extends FragmentActivity implements ItemFragment.OnListFragmentInteractionListener {
 
     int i = 1;
 
-    private DummyContent.DummyItem dummyItem;
+    private DummyContent.DummyItem selected;
 
     FeedReaderContract.FeedReaderDbHelper dbHelper;
 
@@ -54,22 +50,22 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnLis
 
         //If you interact with the same item again
         //deselect it and set button to invisible again
-        if (dummyItem == item) {
-            dummyItem = null;
+        if (selected == item) {
+            selected = null;
             Button b = findViewById(R.id.buttonDeleteItem);
             b.setVisibility(View.INVISIBLE);
         } else {
-            dummyItem = item;
+            selected = item;
             Button b = findViewById(R.id.buttonDeleteItem);
             b.setVisibility(View.VISIBLE);
         }
         ItemFragment itemFragment = (ItemFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_container_main_activity);
         MyItemRecyclerViewAdapter adapter = itemFragment.getAdapter();
-        adapter.setHighlight(item);
+        adapter.setHighlight(selected);
     }
 
     public void deleteItem(View view) {
-        DummyContent.deleteItem(dummyItem);
+        DummyContent.deleteItem(selected);
 
         ItemFragment itemFragment = (ItemFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_container_main_activity);
         MyItemRecyclerViewAdapter adapter = itemFragment.getAdapter();
@@ -81,21 +77,24 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnLis
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         String selection = FeedReaderContract.FeedEntry.COLUMN_CONTENT + " LIKE ?";
         // Specify arguments in placeholder order.
-        String[] selectionArgs = { dummyItem.content };
+        String[] selectionArgs = { selected.content };
         // Issue SQL statement.
         int deletedRows = db.delete(FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs);
-        dummyItem = null;
+        selected = null;
+        adapter.setHighlight(null);
     }
 
 
 
     public void onButtonChangeToAddNewItem(View view) {
         this.changeFragment(new AddNewItem());
-        Button b = findViewById(R.id.addItemFragmentButton);
-        b.setVisibility(View.INVISIBLE);
+        findViewById(R.id.addItemFragmentButton).setVisibility(View.INVISIBLE);
+        findViewById(R.id.buttonDeleteItem).setVisibility(View.INVISIBLE);
+        selected=null;
+
     }
 
-    private void saveDataToDatabase(String content, String amount) {
+    private void saveDataToDatabase(String content, Integer amount) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         //Save the values
@@ -122,7 +121,7 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnLis
         Cursor cursor = db.rawQuery("SELECT * FROM items", null);
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {
-                DummyContent.addItem(new DummyContent.DummyItem(cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT)), cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_AMOUNT))));
+                DummyContent.addItem(new DummyContent.DummyItem(cursor.getString(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_CONTENT)), cursor.getInt(cursor.getColumnIndex(FeedReaderContract.FeedEntry.COLUMN_AMOUNT))));
                 cursor.moveToNext();
             }
         }
@@ -134,15 +133,24 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnLis
     public void addToData() {
         TextView itemNameTV = findViewById(R.id.addNewItemName);
         TextView itemAmountTV = findViewById(R.id.addNewItemAmount);
-        if (itemNameTV != null && itemAmountTV != null && !alreadyInDatabase(itemNameTV.getText().toString())) {
-            String content = itemNameTV.getText().toString();
-            String amount = itemAmountTV.getText().toString();
-            if (!content.equals("") && !amount.equals("")) {
-                DummyContent.addItem(new DummyContent.DummyItem(content, amount));
-                this.saveDataToDatabase(content, amount);
-            }
+        if (itemNameTV != null && itemAmountTV != null){
+        String item=itemNameTV.getText().toString();
+        String amount=itemAmountTV.getText().toString();
 
+        if(item != ""){
+            item=itemNameTV.getText().toString().toLowerCase();
+            item = item.substring(0, 1).toUpperCase() + item.substring(1);
+        if(amount==""){
+            amount="1";
         }
+        if(!alreadyInDatabase(item)) {
+            Integer amountInInteger = Integer.parseInt(amount);
+
+                DummyContent.addItem(new DummyContent.DummyItem(item, amountInInteger));
+                this.saveDataToDatabase(item, amountInInteger);
+
+
+        }}}
         itemNameTV.setText("");
         itemAmountTV.setText("");
     }
@@ -188,8 +196,7 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnLis
 
     public void changeFragment(Fragment fragment) {
         if (fragment  instanceof ItemFragment) {
-            Button b = findViewById(R.id.addItemFragmentButton);
-            b.setVisibility(View.VISIBLE);
+            findViewById(R.id.addItemFragmentButton).setVisibility(View.VISIBLE);
         }
         fragment.setArguments(getIntent().getExtras());
         FragmentTransaction ft = this.getSupportFragmentManager().beginTransaction();

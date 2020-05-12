@@ -38,6 +38,16 @@ public class DummyContent {
     public static void deleteItem(DummyItem item) {
         ITEM_MAP.remove(item.id);
         ITEMS.remove(item);
+        updateIds();
+    }
+
+    private static void updateIds(){
+        int i=1;
+        for (DummyItem item:ITEMS) {
+            item.id=i;
+            i++;
+        }
+
     }
 
 
@@ -47,13 +57,13 @@ public class DummyContent {
      */
     public static class DummyItem {
         public final String content;
-        public final String amount;
-        public final String id;
+        public final Integer amount;
+        public Integer id;
 
-        public DummyItem(String content, String amount) {
+        public DummyItem(String content, Integer amount) {
             this.content = content;
             this.amount = amount;
-            this.id = DummyContent.ITEMS.size() + 1 + "";
+            this.id = DummyContent.ITEMS.size() + 1;
         }
 
         @Override

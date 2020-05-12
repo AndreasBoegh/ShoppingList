@@ -14,11 +14,6 @@ import com.example.shoppinglist.dummy.DummyContent.DummyItem;
 
 import java.util.List;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
- * specified {@link OnListFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
- */
 public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder> {
 
     private final List<DummyItem> mValues;
@@ -33,15 +28,15 @@ public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecycl
     public void setHighlight(DummyItem position) {
         if (position instanceof DummyItem && position != null) {
             int currentPos = mValues.indexOf(position);
-            int oldPos = new Integer(highligtedItemPosition);
             if (currentPos == highligtedItemPosition) {
                 this.highligtedItemPosition = -1;
             } else {
                 this.highligtedItemPosition = currentPos;
             }
-            this.notifyItemChanged(currentPos);
-            this.notifyItemChanged(oldPos);
+        }else{
+            this.highligtedItemPosition = -1;
         }
+        this.notifyDataSetChanged();
 
     }
 
@@ -57,12 +52,12 @@ public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyItemRecycl
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
+        holder.mIdView.setText(Integer.toString(mValues.get(position).id));
         holder.mContentView.setText(mValues.get(position).content);
-        holder.mAmountView.setText(mValues.get(position).amount);
+        holder.mAmountView.setText(Integer.toString(mValues.get(position).amount));
 
         if(position == highligtedItemPosition ){
-            holder.itemView.setBackgroundColor(Color.parseColor("#4B0082"));
+            holder.itemView.setBackgroundColor(Color.parseColor("#87CEEB"));
         }
         else{
             holder.itemView.setBackgroundColor(Color.TRANSPARENT);

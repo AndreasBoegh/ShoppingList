@@ -20,7 +20,7 @@ public class FeedReaderContract {
             "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +
                     FeedEntry._ID + " INTEGER PRIMARY KEY," +
                     FeedEntry.COLUMN_CONTENT + " TEXT," +
-                    FeedEntry.COLUMN_AMOUNT + " TEXT)";
+                    FeedEntry.COLUMN_AMOUNT + " INTEGER)";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME;
